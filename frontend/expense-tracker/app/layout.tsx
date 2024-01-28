@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localfont from "next/font/local";
 import "./globals.css";
 import Header from "./components/Header.";
+import { AuthProvider } from "./context/AuthContext";
 
 
 const InterFont = localfont({src: './fonts/Inter.ttf'})
@@ -19,8 +20,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={InterFont.className}>
+        <AuthProvider>
         <Header/>
         {children}
+        </AuthProvider>
         </body>
     </html>
   );
