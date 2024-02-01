@@ -9,6 +9,7 @@ interface Category{
     id:string;
     user:string;
     name:string;
+    type:string
 }
 
 interface expenses {

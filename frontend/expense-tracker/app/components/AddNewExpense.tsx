@@ -35,11 +35,14 @@ const NewExpenseForm: React.FC = () => {
 
 
 useEffect( ()=>{
-
+  
   const getUserCategory =async ()=>{
       const res = await getCategories()
   const categories =await res.json()
-  setCategories(categories)
+  console.log(categories)
+  const filteredcategories =categories.filter((category)=>{console.log(category); category.type==="expenses"})
+  setCategories(filteredcategories)
+  console.log(filteredcategories)
   } 
 
   getUserCategory()
