@@ -1,5 +1,7 @@
 from ninja import Router
 from django.shortcuts import get_object_or_404
+from account.models import CustomUser
+from management.models import Category
 from .models import Income
 from .schema import IncomeSchemaOut, IncomeSchemaIn
 
@@ -18,6 +20,13 @@ def get_income(request, income_id: str):
 
 @router.post("/create-income", response=IncomeSchemaOut)
 def create_income(request, data: IncomeSchemaIn):
+    print(data)
+    user = get_object_or_404(CustomUser, id=data.user)
+    data.user = user
+
+    if data.category is not None:
+        category = get_object_or_404(Category, id=data.category)
+        data.category = category
     return Income.objects.create(**data.dict())
 
 

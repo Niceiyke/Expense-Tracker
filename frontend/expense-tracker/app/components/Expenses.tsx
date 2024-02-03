@@ -14,9 +14,9 @@ async function Expanses() {
   return (
     
 <main className='container mx-auto flex flex-col'>
-    <div className="flex justify-end">
+    <div className=" flex justify-end">
     <Link href='/expenses/add'>
-      <button className="border p-4 mr-4 mt-4 rounded bg-green-800 text-md text-gray-100">Add Expenses</button>
+      <button className="border p-4 mt-4 rounded bg-green-800 text-md text-gray-100 ml-auto">Add Expenses</button>
     </Link>
   </div>
   <div className="items-center">

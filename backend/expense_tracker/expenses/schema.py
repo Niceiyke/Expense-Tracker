@@ -3,7 +3,7 @@ from uuid import UUID
 from ninja import ModelSchema, Schema
 from .models import Expenses
 from account.schema import UserSchema
-from management.schema import CategorySchema
+from management.schema import CategorySchemaOut
 
 
 class ExpenseSchema(Schema):
@@ -13,7 +13,7 @@ class ExpenseSchema(Schema):
     description: str
     date: datetime
     created_at: datetime
-    category: CategorySchema | None = None
+    category: CategorySchemaOut | None = None
 
 
 class CreateExpensesSchema(Schema):

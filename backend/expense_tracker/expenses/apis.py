@@ -21,7 +21,6 @@ def get_expenses(request, expenses_id: str):
 
 @router.post("create-expenses", response=ExpenseSchema)
 def create_expenses(request, data: CreateExpensesSchema):
-    print(data)
     user = get_object_or_404(CustomUser, id=data.user)
     data.user = user
 

@@ -13,7 +13,7 @@ interface FormData {
 }
 
 interface Data{
-    user:string;
+    user:string|null;
   category: string;
   description: string;
   amount: number;
@@ -34,20 +34,17 @@ const NewExpenseForm: React.FC = () => {
 
 
 
-useEffect( ()=>{
-  
-  const getUserCategory =async ()=>{
-      const res = await getCategories()
-  const categories =await res.json()
-  console.log(categories)
-  const filteredcategories =categories.filter((category)=>{console.log(category); category.type==="expenses"})
-  setCategories(filteredcategories)
-  console.log(filteredcategories)
-  } 
+useEffect(() => {
+  const getUserCategory = async () => {
+    const res = await getCategories();
+    const categories = await res.json();
+    console.log(categories);
+    const filteredCategories = categories.filter((category:Category) => category.type === "expenses");
+    setCategories(filteredCategories);
+  };
 
-  getUserCategory()
-
-},[])
+  getUserCategory();
+}, []);
 
 
 
@@ -62,15 +59,14 @@ useEffect( ()=>{
 
     // Handle registration logic here
    
-const user:string =JSON.parse(localStorage.getItem('user')).id
-console.log(user)
-
+const user=localStorage.getItem('user')
+const user_id:string|null =user ? JSON.parse(user).id : null;
     const data:Data={
   category: formData.category,
   description: formData.description,
   amount: formData.amount,
   date: new Date(formData.date),
-  user: user
+  user: user_id
 
 }
 
@@ -90,30 +86,32 @@ console.log(user)
 
 
   return (
-<div className="min-h-screen flex items-center justify-center">
-  <div className="bg-white p-8 rounded shadow-md w-96">
-    <h2 className="text-2xl font-bold mb-4">Add Expenses</h2>
-    <form onSubmit={handleSubmit}>
-      <div className="mb-4">
-        <label htmlFor="category" className="block text-sm font-medium text-gray-600">
-          Category
-        </label>
-        <select
-          id="category"
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          required
-          className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
-        >
-          <option value="">Select a category</option>
-          {categories.map((category)=>       
-            <option value={category.id} key={category.id}>{category.name}</option>
-          )}
-        </select>
-      </div>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-green-800 p-8 rounded shadow-md w-96">
+        <h2 className="text-2xl font-bold mb-4 text-gray-100 text-center">Add Expenses</h2>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-600">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-100">
+              Category
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              required
+              className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
+            >
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option value={category.id} key={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-100">
               Description
             </label>
             <textarea
@@ -122,50 +120,46 @@ console.log(user)
               value={formData.description}
               onChange={handleChange}
               required
-              className="block w-full mt-1 border-gray-600 rounded-md shadow-sm focus:border-gray-400 focus:ring focus:ring-gray-400 focus:ring-opacity-50"
+              className="block w-full mt-1 border-gray-600 rounded-md shadow-sm focus:border-green-400 focus:ring focus:ring-gray-400 focus:ring-opacity-50"
             />
           </div>
-
-      <div className="mb-4">
-        <label htmlFor="amount" className="block text-sm font-medium text-gray-600">
-          Amount
-        </label>
-        <input
-          type='number'
-          id="amount"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          required
-          className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
-        />
+          <div className="mb-4">
+            <label htmlFor="amount" className="block text-sm font-medium text-gray-100">
+              Amount
+            </label>
+            <input
+              type="number"
+              id="amount"
+              name="amount"
+              value={formData.amount}
+              onChange={handleChange}
+              required
+              className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="date" className="block text-sm font-medium text-gray-100">
+              Date
+            </label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              required
+              className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-green-700 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline-blue active:bg-blue-800"
+          >
+            Add New Expenses
+          </button>
+        </form>
       </div>
-      <div className="mb-4">
-        <label htmlFor="date" className="block text-sm font-medium text-gray-600">
-          Date
-        </label>
-        <div className="relative">
-          <input
-            type='date'
-            id="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
-          />
-        </div>
-      </div>
-      <button
-        type="submit"
-        className="bg-green-700 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline-blue active:bg-blue-800"
-      >
-        Add New Expenses
-      </button>
-    </form>
-  </div>
-</div>
-
+    </div>
   );
 };
 

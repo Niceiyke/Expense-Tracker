@@ -14,7 +14,20 @@ interface ExpensesProp{
     amount:number;
     description:string;
     date:Date;
-    user:string;
+    user:string|null;
+}
+
+interface IncomeProp{
+    category:string;
+    amount:number;
+    description:string;
+    date:Date;
+    user:string|null;
+}
+interface CategoryProp{
+    name:string;
+    type:string;
+    user_id:string|null;
 }
 
 export const RegisterUser =async (user:NewUser)=>{
@@ -64,8 +77,6 @@ export const AddExpenses =async(expenses:ExpensesProp)=>{
     })
 
         return res
-    
-
 }
 
 export const getUserExpenses =async ()=>{
@@ -73,7 +84,41 @@ export const getUserExpenses =async ()=>{
         return res
 }
 
+
+export const getUserIncome =async ()=>{
+    const res =await fetch(`${BASEURL}/income/list-incomes`,{cache:'no-store'})
+        return res
+}
+
+export const AddIncome =async(income:IncomeProp)=>{
+
+        const res =await fetch(`${BASEURL}/income/create-income`,{
+        method: 'POST',
+         headers: {
+            'Content-Type': 'application/json'
+        },
+        body:JSON.stringify(income),
+
+    })
+
+        return res
+}
+
 export const getCategories =async ()=>{
     const res =await fetch(`${BASEURL}/category/categories`)
+        return res
+}
+
+export const AddCategory=async(category:CategoryProp)=>{
+
+        const res =await fetch(`${BASEURL}/category/add-category`,{
+        method: 'POST',
+         headers: {
+            'Content-Type': 'application/json'
+        },
+        body:JSON.stringify(category),
+
+    })
+
         return res
 }

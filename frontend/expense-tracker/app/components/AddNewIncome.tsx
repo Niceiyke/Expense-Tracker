@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState,useEffect } from 'react';
-import { AddExpenses, getCategories } from '../endpoints/apis';
+import { AddExpenses, AddIncome, getCategories } from '../endpoints/apis';
 import { useRouter } from 'next/navigation';
 
 interface FormData {
@@ -13,7 +13,7 @@ interface FormData {
 }
 
 interface Data{
-    user:string;
+    user:string|null;
   category: string;
   description: string;
   amount: number;
@@ -34,17 +34,16 @@ const NewIncomeForm: React.FC = () => {
 
 
 
-useEffect( ()=>{
+useEffect(() => {
+  const getUserCategory = async () => {
+    const res = await getCategories();
+    const categories = await res.json();
+    const filteredCategories = categories.filter((category:Category) => category.type === "income");
+    setCategories(filteredCategories);
+  };
 
-  const getUserCategory =async ()=>{
-      const res = await getCategories()
-  const categories =await res.json()
-  setCategories(categories)
-  } 
-
-  getUserCategory()
-
-},[])
+  getUserCategory();
+}, []);
 
 
 
@@ -59,22 +58,25 @@ useEffect( ()=>{
 
     // Handle registration logic here
    
-const user:string =JSON.parse(localStorage.getItem('user')).id
+const user=localStorage.getItem('user')
+const user_id:string|null =user ? JSON.parse(user).id : null;
+
+console.log(user_id)
 
   const data:Data={
   category: formData.category,
   description: formData.description,
   amount: formData.amount,
   date: new Date(formData.date),
-  user: user
+  user: user_id
 
 }
 
  console.log('Form Data:', data);
 
-    const res =await AddExpenses(data)
+    const res =await AddIncome(data)
     if (res.status ===200){
-      router.push('/expenses')
+      router.push('/income')
 
     }
 
@@ -87,11 +89,11 @@ const user:string =JSON.parse(localStorage.getItem('user')).id
 
   return (
 <div className="min-h-screen flex items-center justify-center">
-  <div className="bg-white p-8 rounded shadow-md w-96">
-    <h2 className="text-2xl font-bold mb-4">Add Expenses</h2>
+  <div className="bg-green-800 p-8 rounded shadow-md w-96">
+    <h2 className="text-2xl font-bold mb-4 text-gray-100 text-center">Add Income</h2>
     <form onSubmit={handleSubmit}>
       <div className="mb-4">
-        <label htmlFor="category" className="block text-sm font-medium text-gray-600">
+        <label htmlFor="category" className="block text-sm font-medium text-gray-100">
           Category
         </label>
         <select
@@ -109,7 +111,7 @@ const user:string =JSON.parse(localStorage.getItem('user')).id
         </select>
       </div>
           <div className="mb-4">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-600">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-100">
               Description
             </label>
             <textarea
@@ -123,7 +125,7 @@ const user:string =JSON.parse(localStorage.getItem('user')).id
           </div>
 
       <div className="mb-4">
-        <label htmlFor="amount" className="block text-sm font-medium text-gray-600">
+        <label htmlFor="amount" className="block text-sm font-medium text-gray-100">
           Amount
         </label>
         <input
@@ -137,7 +139,7 @@ const user:string =JSON.parse(localStorage.getItem('user')).id
         />
       </div>
       <div className="mb-4">
-        <label htmlFor="date" className="block text-sm font-medium text-gray-600">
+        <label htmlFor="date" className="block text-sm font-medium text-gray-100">
           Date
         </label>
         <div className="relative">
@@ -156,7 +158,7 @@ const user:string =JSON.parse(localStorage.getItem('user')).id
         type="submit"
         className="bg-green-700 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline-blue active:bg-blue-800"
       >
-        Add New Expenses
+        Add New Income
       </button>
     </form>
   </div>

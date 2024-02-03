@@ -34,17 +34,18 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<TokenPayload | null>(null);
+  const [user, setUser] = useState<TokenPayload | null>(localStorage.getItem('user')?JSON.parse(localStorage.getItem('user')):null);
   const router = useRouter();
 
   useEffect(() => {
     const tokenData= localStorage.getItem('user')?JSON.parse(localStorage.getItem('user')):null;
 
-    console.log(tokenData.exp)
+    console.log(tokenData)
     
-    if (tokenData) {
-      setUser(tokenData);
+    if (tokenData==null) {
+      router.push('/login')
     }
+
   }, []);
 
   const login = async (userData: UserProp) => {
