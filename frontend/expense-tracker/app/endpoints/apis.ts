@@ -1,124 +1,120 @@
+const BASEURL = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000/api";
 
-const BASEURL="http://127.0.0.1:8000/api"
-
-interface NewUser{
-    email:string;
-    first_name:string;
-    last_name:string;
-    password:string
-
+export async function fetchSummary() {
+  try {
+    const res = await fetch(`${BASEURL}/transactions/summary`, { cache: "no-store" });
+    if (!res.ok) return { balance: 0, total_income: 0, total_expenses: 0 };
+    return res.json();
+  } catch (error) {
+    console.error("Failed to fetch summary", error);
+    return { balance: 0, total_income: 0, total_expenses: 0 };
+  }
 }
 
-interface ExpensesProp{
-    category:string;
-    amount:number;
-    description:string;
-    date:Date;
-    user:string|null;
+export async function fetchTransactions() {
+  try {
+    const res = await fetch(`${BASEURL}/transactions`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return res.json();
+  } catch (error) {
+    console.error("Failed to fetch transactions", error);
+    return [];
+  }
 }
 
-interface IncomeProp{
-    category:string;
-    amount:number;
-    description:string;
-    date:Date;
-    user:string|null;
-}
-interface CategoryProp{
-    name:string;
-    type:string;
-    user_id:string|null;
+export async function fetchCategories() {
+  try {
+    const res = await fetch(`${BASEURL}/categories`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return res.json();
+  } catch (error) {
+    console.error("Failed to fetch categories", error);
+    return [];
+  }
 }
 
-export const RegisterUser =async (user:NewUser)=>{
-    const res =await fetch(`${BASEURL}/account/register`,{
-        method: 'POST',
-         headers: {
-            'Content-Type': 'application/json'
-        },
-        body:JSON.stringify(user),
-    })
-
-    if (res.status ===200){
-        return res.json()
-    }
+// Legacy compatibility helpers
+export async function getCategories() {
+  return fetch(`${BASEURL}/categories`, { cache: "no-store" });
 }
 
-interface LoginProp{
-    email:string;
-    password:string
+export async function AddCategory(payload: { name: string; tone?: string; type: string }) {
+  const normalizedType = payload.type === "income" ? "income" : "expense";
+  return fetch(`${BASEURL}/categories`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: payload.name,
+      tone: payload.tone,
+      type: normalizedType,
+    }),
+  });
 }
 
-export const LoginUser =async(userDetail:LoginProp)=>{
-
-        const res =await fetch(`${BASEURL}/account/login`,{
-        method: 'POST',
-         headers: {
-            'Content-Type': 'application/json'
-        },
-        body:JSON.stringify(userDetail),
-
-    })
-
-        return res
-    
-
+export async function createTransaction(payload: {
+  title: string;
+  amount: number;
+  type: "income" | "expense";
+  category_id?: number;
+  note?: string;
+}) {
+  const res = await fetch(`${BASEURL}/transactions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
 }
 
-export const AddExpenses =async(expenses:ExpensesProp)=>{
-
-        const res =await fetch(`${BASEURL}/expenses/create-expenses`,{
-        method: 'POST',
-         headers: {
-            'Content-Type': 'application/json'
-        },
-        body:JSON.stringify(expenses),
-
-    })
-
-        return res
+export async function AddExpenses(payload: { category?: string; description: string; amount: number; date?: Date; user?: string | null }) {
+  return fetch(`${BASEURL}/transactions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: payload.description || "Expense",
+      amount: Number(payload.amount),
+      type: "expense",
+      category_id: payload.category ? Number(payload.category) : undefined,
+      note: payload.description,
+    }),
+  });
 }
 
-export const getUserExpenses =async ()=>{
-    const res =await fetch(`${BASEURL}/expenses/list-expenses`,{cache:'no-store'})
-        return res
+export async function AddIncome(payload: { category?: string; description: string; amount: number; date?: Date; user?: string | null }) {
+  return fetch(`${BASEURL}/transactions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: payload.description || "Income",
+      amount: Number(payload.amount),
+      type: "income",
+      category_id: payload.category ? Number(payload.category) : undefined,
+      note: payload.description,
+    }),
+  });
 }
 
-
-export const getUserIncome =async ()=>{
-    const res =await fetch(`${BASEURL}/income/list-incomes`,{cache:'no-store'})
-        return res
+export async function getUserExpenses() {
+  const data = await fetchTransactions();
+  const filtered = Array.isArray(data) ? data.filter((tx) => tx.type === "expense") : [];
+  return new Response(JSON.stringify(filtered), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
-export const AddIncome =async(income:IncomeProp)=>{
-
-        const res =await fetch(`${BASEURL}/income/create-income`,{
-        method: 'POST',
-         headers: {
-            'Content-Type': 'application/json'
-        },
-        body:JSON.stringify(income),
-
-    })
-
-        return res
+export async function getUserIncome() {
+  const data = await fetchTransactions();
+  const filtered = Array.isArray(data) ? data.filter((tx) => tx.type === "income") : [];
+  return new Response(JSON.stringify(filtered), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
-export const getCategories =async ()=>{
-    const res =await fetch(`${BASEURL}/category/categories`)
-        return res
-}
-
-export const AddCategory=async(category:CategoryProp)=>{
-
-        const res =await fetch(`${BASEURL}/category/add-category`,{
-        method: 'POST',
-         headers: {
-            'Content-Type': 'application/json'
-        },
-        body:JSON.stringify(category),
-
-    })
-
-        return res
+export async function LoginUser(_: { email: string; password: string }) {
+  return new Response(JSON.stringify({ jwt: "demo-token" }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
