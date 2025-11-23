@@ -1,113 +1,235 @@
-import Image from "next/image";
+"use client";
+
+import { FiActivity, FiArrowUpRight, FiBarChart2, FiCalendar, FiShoppingBag, FiSmartphone, FiTrendingUp, FiDollarSign } from "react-icons/fi";
+import { useEffect, useMemo, useState } from "react";
+
+import { Badge } from "./components/ui/badge";
+import { Button } from "./components/ui/button";
+import { Card, CardContent, CardHeader } from "./components/ui/card";
+import { createTransaction, fetchCategories, fetchSummary, fetchTransactions } from "./endpoints/apis";
+
+interface Summary {
+  balance: number;
+  total_income: number;
+  total_expenses: number;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  tone: string;
+  type: "income" | "expense";
+}
+
+interface Transaction {
+  id: number;
+  title: string;
+  amount: number;
+  occurred_at: string;
+  type: "income" | "expense";
+  category_id?: number | null;
+  note?: string | null;
+}
+
+const currency = (value: number) =>
+  value.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
 
 export default function Home() {
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function hydrate() {
+      const [summaryRes, txRes, categoryRes] = await Promise.all([
+        fetchSummary(),
+        fetchTransactions(),
+        fetchCategories(),
+      ]);
+      setSummary(summaryRes);
+      setTransactions(txRes);
+      setCategories(categoryRes);
+      setLoading(false);
+    }
+    hydrate();
+  }, []);
+
+  const highlight = useMemo(() => {
+    return transactions.slice(0, 3);
+  }, [transactions]);
+
+  const onQuickAdd = async (type: "income" | "expense") => {
+    const fallbackCategory = categories.find((cat) => cat.type === type);
+    await createTransaction({
+      title: type === "income" ? "Bonus" : "Coffee run",
+      amount: type === "income" ? 1200 : 12,
+      type,
+      category_id: fallbackCategory?.id,
+      note: "Created from the quick action",
+    });
+    const [summaryRes, txRes] = await Promise.all([fetchSummary(), fetchTransactions()]);
+    setSummary(summaryRes);
+    setTransactions(txRes);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="space-y-8">
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <Badge className="bg-emerald-500/10 text-emerald-200 inline-flex items-center gap-2">
+            <FiSmartphone className="h-4 w-4" /> Mobile-first
+          </Badge>
+          <h1 className="text-3xl font-semibold text-slate-50 sm:text-4xl">
+            Lumina — your vibrant expense cockpit
+          </h1>
+          <p className="max-w-2xl text-base text-slate-300">
+            Track income and spending in a fast, modern interface. Optimized for phones, yet stunning on desktop with fluid
+            gradients and tactile controls.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={() => onQuickAdd("income")}>
+              <FiDollarSign className="mr-2 h-4 w-4" /> Add income
+            </Button>
+            <Button variant="ghost" onClick={() => onQuickAdd("expense")}>
+              <FiShoppingBag className="mr-2 h-4 w-4" /> Log expense
+            </Button>
+          </div>
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
+        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-right shadow-glow sm:min-w-[220px]">
+          <p className="text-xs uppercase tracking-[0.12em] text-slate-400">Current balance</p>
+          <p className="text-3xl font-semibold text-emerald-200">
+            {loading ? "—" : currency(summary?.balance ?? 0)}
           </p>
-        </a>
+          <p className="text-sm text-slate-300">Updated live from your ledger</p>
+        </div>
+      </section>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Card className="p-5">
+          <CardHeader
+            title="Cash flow"
+            badge={
+              <span className="flex items-center gap-2 text-xs text-slate-300">
+                <FiCalendar className="h-4 w-4" /> Last 14 days
+              </span>
+            }
+          />
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4 text-sm sm:text-base">
+              <FlowStat
+                label="Income"
+                tone="from-emerald-400 via-green-400 to-lime-300"
+                amount={summary?.total_income ?? 0}
+                loading={loading}
+              />
+              <FlowStat
+                label="Expenses"
+                tone="from-pink-500 via-rose-400 to-orange-300"
+                amount={summary?.total_expenses ?? 0}
+                loading={loading}
+              />
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-sm text-slate-300">Balances are recomputed on every change so your overview stays crisp.</p>
+              <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-400">
+                <Badge className="bg-purple-500/10 text-purple-100">Realtime summary</Badge>
+                <Badge className="bg-sky-500/10 text-sky-100">SQLite local-first</Badge>
+                <Badge className="bg-emerald-500/10 text-emerald-100">FastAPI backend</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+        <Card className="p-5">
+          <CardHeader title="Recent activity" badge={<FiArrowUpRight className="h-4 w-4 text-slate-300" />} />
+          <CardContent>
+            <div className="space-y-3">
+              {highlight.map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-semibold text-slate-50">{tx.title}</p>
+                    <p className="text-xs text-slate-400">{new Date(tx.occurred_at).toLocaleString()}</p>
+                  </div>
+                  <p className={tx.type === "income" ? "text-emerald-300" : "text-rose-300"}>
+                    {tx.type === "income" ? "+" : "-"}
+                    {currency(tx.amount)}
+                  </p>
+                </div>
+              ))}
+              {!highlight.length && (
+                <div className="rounded-xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-center text-sm text-slate-300">
+                  Add a quick transaction to see it glow here.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="p-5 lg:col-span-2">
+          <CardHeader title="Patterns" badge={<FiBarChart2 className="h-4 w-4 text-slate-300" />} />
+          <CardContent>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-inner"
+                  style={{ boxShadow: `0 10px 30px ${category.tone}33` }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold" style={{ color: category.tone }}>
+                      {category.name}
+                    </span>
+                    <Badge className="bg-white/10 text-slate-200">{category.type}</Badge>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-400">Customize tones to keep categories easy to spot in mobile lists.</p>
+                </div>
+              ))}
+              {!categories.length && (
+                <p className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-6 text-sm text-slate-300">
+                  Save your first category to teach the system how you like to organize purchases.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="p-5">
+          <CardHeader title="Quick tips" badge={<FiTrendingUp className="h-4 w-4 text-slate-300" />} />
+          <CardContent>
+            <div className="space-y-3 text-sm text-slate-200">
+              <Tip text="Tap the gradient buttons on mobile to add entries in seconds." />
+              <Tip text="FastAPI + SQLite means lightweight hosting and instant local prototyping." />
+              <Tip text="Use category tones to visually encode recurring expenses." />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     </main>
+  );
+}
+
+function FlowStat({ label, amount, tone, loading }: { label: string; amount: number; tone: string; loading: boolean }) {
+  return (
+    <div className="rounded-xl bg-white/5 p-4 shadow-inner">
+      <p className="text-xs uppercase tracking-[0.08em] text-slate-400">{label}</p>
+      <p className={`mt-2 text-2xl font-semibold bg-clip-text text-transparent bg-gradient-to-r ${tone}`}>
+        {loading ? "—" : currency(amount)}
+      </p>
+    </div>
+  );
+}
+
+function Tip({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 p-3">
+      <FiActivity className="mt-0.5 h-4 w-4 text-amber-300" />
+      <p className="text-sm text-slate-200">{text}</p>
+    </div>
   );
 }

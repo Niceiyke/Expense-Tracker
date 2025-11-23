@@ -1,5 +1,6 @@
-"use client"
-import React, { useState } from 'react';
+"use client";
+import Image from "next/image";
+import React, { useState } from "react";
 
 const Header = () => {
   const [isMenuOpen, setMenuOpen] = useState(false);
@@ -12,11 +13,7 @@ const Header = () => {
     <header className="bg-green-900 text-white py-4">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center">
-          <img
-            src="/logo2.png" // replace with your logo image path
-            alt="Logo"
-            className="h-8 w-8 mr-2"
-          />
+          <Image src="/logo2.png" alt="Logo" className="mr-2 h-8 w-8" width={32} height={32} />
           <span className="text-lg font-bold">Amliam Tracker</span>
         </div>
 
